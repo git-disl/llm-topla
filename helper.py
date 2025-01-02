@@ -229,3 +229,23 @@ def load_xsum_data(dataset_name):
     return dataset["document"], dataset["summary"]
 
 
+def get_prompt_template(task_name, llm_name, n_shot):
+    temp_path = os.path.join(PROMPTS_DIR, "model_templetes.json")
+    with open(temp_path, "r") as f:
+        temp_dict = json.load(f)
+    template_txt = temp_dict[llm_name.lower().split("-")[0]]
+    # temp_txt = [INST] {prompt} [/INST]
+
+    prompt = ""
+    if n_shot > 0:
+        with open(os.path.join(PROMPTS_DIR, "few_shot.json"), "r") as f:
+            temp_dict = json.load(f)
+        examples = temp_dict[task_name]["examples"]
+        examples = examples[:n_shot]
+        prompt = temp_dict[task_name]["prompt"]
+        prompt = prompt.replace("{examples}", "\n ".join(examples))
+        # prompt = "example1, example2, ... {question}"
+
+    template_txt = template_txt.replace("{prompt}", prompt)
+
+    return template_txt
